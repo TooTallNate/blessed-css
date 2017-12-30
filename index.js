@@ -14,6 +14,20 @@ function deleteEmpty(o) {
       deleteEmpty(o[k])
     }
   }
+  return o
+}
+
+function parseBools(o) {
+  for (const k of Object.keys(o)) {
+    if (o[k] === 'true') {
+      o[k] = true
+    } else if (o[k] === 'false') {
+      o[k] = false
+    } else if (o[k] && typeof o[k] === 'object') {
+      parseBools(o[k])
+    }
+  }
+  return o
 }
 
 function toHTML(container, pseudo, self = false, child = '') {
@@ -110,15 +124,12 @@ function createStyle(css) {
       .map(key => matches.get(key).declarations)
     //console.log(sorted)
 
-    let s = container.style
-    if (pseudo) {
-      s = s[pseudo]
-    }
-    const current = extend({}, s)
-    deleteEmpty(current)
+    const current = deleteEmpty(
+      extend({}, pseudo ? container.style[pseudo] : container.style)
+    )
 
     //console.log({ pseudo, current })
-    return extend({}, ...sorted, current)
+    return parseBools(extend({}, ...sorted, current))
   }
 
   function addStyle(container) {
@@ -127,7 +138,10 @@ function createStyle(css) {
     container.style.focus = getStyle(container, 'focus')
     container.style.hover = getStyle(container, 'hover')
     container.style.scrollbar = getStyle(container, 'scrollbar')
+    return container.style
   }
+
+  addStyle.getStyle = getStyle
 
   return addStyle
 }
