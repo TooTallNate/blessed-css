@@ -30,7 +30,7 @@ function parseBools(o) {
   return o
 }
 
-function toHTML(container, pseudo, self = false, child = '') {
+function toHTML(container, pseudo, self = false, children = '') {
   const name = container.constructor.name.toLowerCase()
   let className = ''
   if (container.options.classNames) {
@@ -41,7 +41,7 @@ function toHTML(container, pseudo, self = false, child = '') {
   if (pseudo) {
     className += ` __pseudo_${pseudo}`
   }
-  const html = `<${name} class="${className}" ${self ? 'self' : ''}>${child}</${
+  const html = `<${name} class="${className}" ${self ? 'self' : ''}>${children}</${
     name
   }>`
   if (container.parent) {
