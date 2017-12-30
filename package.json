@@ -1,14 +1,14 @@
 {
   "name": "blessed-css",
   "version": "1.0.0",
-  "description": "",
+  "description": "CSS engine for blessed",
   "main": "./index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Nathan Rajlich <n@n8.io>",
+  "license": "MIT",
   "dependencies": {
     "css-select": "^1.3.0-rc0",
     "cssparser": "^0.9.4",
