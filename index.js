@@ -97,31 +97,31 @@ function createStyle(css) {
     const [self] = CSSselect.selectAll('[self]', [dom])
     //console.log(self)
 
-    const matches = new Map()
+    const matches = []
     for (const rule of rules) {
-      for (const _selector of rule.selectors) {
+      for (const selector of rule.selectors) {
         try {
-          const selector = _selector.replace(':', '.__pseudo_')
-          //console.error(selector)
-          const match = CSSselect.selectAll(selector, [dom]).some(
+          const pseudoSelector = selector.replace(':', '.__pseudo_')
+          //console.error(pseudoSelector)
+          const match = CSSselect.selectAll(pseudoSelector, [dom]).some(
             match => match === self
           )
           if (match) {
-            matches.set(_selector, rule)
+            matches.push({ selector, rule })
+            //matches.set(selector, rule)
             //console.log(rule)
           }
         } catch (err) {
-          console.error(_selector, err)
+          console.error(selector, err)
         }
       }
     }
-    //console.log(matches)
 
-    const sorted = Array.from(matches.keys())
+    const sorted = matches
       .sort((a, b) => {
-        return specificities.get(a) - specificities.get(b)
+        return specificities.get(a.selector) - specificities.get(b.selector)
       })
-      .map(key => matches.get(key).declarations)
+      .map(m => m.rule.declarations)
     //console.log(sorted)
 
     const current = deleteEmpty(
