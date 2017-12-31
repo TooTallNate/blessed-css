@@ -35,11 +35,16 @@ function toHTML(container, selector = null, self = false, children = '') {
     parseClassName(container.options.classNames)
   )
   if (selector) {
-    classNames.push(...selector.split(':').filter(Boolean).map(s => `__pseudo_${s}`))
+    classNames.push(
+      ...selector
+        .split(':')
+        .filter(Boolean)
+        .map(s => `__pseudo_${s}`)
+    )
   }
-  const html = `<${name} class="${classNames.join(' ')}" ${self ? 'self' : ''}>${
-    children
-  }</${name}>`
+  const html = `<${name} class="${classNames.join(' ')}" ${
+    self ? 'self' : ''
+  }>${children}</${name}>`
   if (container.parent) {
     return toHTML(container.parent, null, false, html)
   } else {
