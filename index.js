@@ -31,9 +31,10 @@ function parseBools(o) {
 
 function toHTML(container, selector = null, self = false, children = '') {
   const name = container.constructor.name.toLowerCase()
-  const classNames = parseClassName(container.options.className).concat(
-    parseClassName(container.options.classNames)
-  )
+  const classNames = [
+    ...parseClassName(container.options.className),
+    ...parseClassName(container.options.classNames)
+  ]
   if (selector) {
     classNames.push(
       ...selector
