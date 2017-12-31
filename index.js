@@ -6,15 +6,14 @@ const { calculate: calculateSpecificity } = require('specificity')
 
 module.exports = createStyle
 
-function deleteEmpty(o) {
-  for (const k of Object.keys(o)) {
-    if (o[k] == null) {
-      delete o[k]
-    } else if (typeof o[k] === 'object') {
-      deleteEmpty(o[k])
-    }
+function parseClassName(className) {
+  if (!className) {
+    return []
+  } else if (typeof className === 'string') {
+    return className.split(' ')
+  } else {
+    return Array.from(className)
   }
-  return o
 }
 
 function parseBools(o) {
@@ -30,20 +29,17 @@ function parseBools(o) {
   return o
 }
 
-function toHTML(container, pseudo, self = false, children = '') {
+function toHTML(container, selector = null, self = false, children = '') {
   const name = container.constructor.name.toLowerCase()
-  let className = ''
-  if (container.options.classNames) {
-    className = encodeURIComponent(
-      Array.from(container.options.classNames).join(' ')
-    )
+  const classNames = parseClassName(container.options.className).concat(
+    parseClassName(container.options.classNames)
+  )
+  if (selector) {
+    classNames.push(...selector.split(':').filter(Boolean).map(s => `__pseudo_${s}`))
   }
-  if (pseudo) {
-    className += ` __pseudo_${pseudo}`
-  }
-  const html = `<${name} class="${className}" ${self ? 'self' : ''}>${children}</${
-    name
-  }>`
+  const html = `<${name} class="${classNames.join(' ')}" ${self ? 'self' : ''}>${
+    children
+  }</${name}>`
   if (container.parent) {
     return toHTML(container.parent, null, false, html)
   } else {
@@ -88,8 +84,8 @@ function createStyle(css) {
   //console.log(specificities)
   //console.log(Array.from(specificities.keys()))
 
-  function getStyle(container, pseudo = null) {
-    const html = toHTML(container, pseudo, true)
+  function get(container, selector = null) {
+    const html = toHTML(container, selector, true)
     //console.log(html)
 
     const [dom] = parseDOM(html)
@@ -101,9 +97,9 @@ function createStyle(css) {
     for (const rule of rules) {
       for (const selector of rule.selectors) {
         try {
-          const pseudoSelector = selector.replace(':', '.__pseudo_')
-          //console.error(pseudoSelector)
-          const match = CSSselect.selectAll(pseudoSelector, [dom]).some(
+          const formattedSelector = selector.replace(/:/g, '.__pseudo_')
+          //console.error(formattedSelector)
+          const match = CSSselect.selectAll(formattedSelector, [dom]).some(
             match => match === self
           )
           if (match) {
@@ -124,24 +120,19 @@ function createStyle(css) {
       .map(m => m.rule.declarations)
     //console.log(sorted)
 
-    const current = deleteEmpty(
-      extend({}, pseudo ? container.style[pseudo] : container.style)
-    )
-
-    //console.log({ pseudo, current })
-    return parseBools(extend({}, ...sorted, current))
+    return parseBools(extend({}, ...sorted))
   }
 
   function addStyle(container) {
-    container.style = getStyle(container)
-    container.style.border = getStyle(container, 'border')
-    container.style.focus = getStyle(container, 'focus')
-    container.style.hover = getStyle(container, 'hover')
-    container.style.scrollbar = getStyle(container, 'scrollbar')
+    container.style = get(container)
+    container.style.border = get(container, ':border')
+    container.style.focus = get(container, ':focus')
+    container.style.hover = get(container, ':hover')
+    container.style.scrollbar = get(container, ':scrollbar')
     return container.style
   }
 
-  addStyle.getStyle = getStyle
+  addStyle.get = get
 
   return addStyle
 }
