@@ -10,7 +10,9 @@ module.exports = createStyle
 const attrProps = new Set([
   'name',
   'id',
-  'draggable'
+  'draggable',
+  'scrollable',
+  'shadow'
 ])
 
 function parseClassName(className) {
@@ -52,13 +54,15 @@ function toHTML(container, selector = '', self = false, children = '') {
   }
   for (const prop of attrProps) {
     const val = container[prop] || container.options[prop]
-    if (typeof val === 'boolean') {
-      if (val) attrs += ` ${prop}`
+    if (typeof val === 'boolean' && val) {
+      attrs += ` ${prop}`
     } else if (val != null) {
       attrs += ` ${prop}="${val}"`
     }
   }
-  if (self) attrs += ' self'
+  if (self) {
+    attrs += ' self'
+  }
   const html = `<${name}${attrs}>${children}</${name}>`
   if (container.parent) {
     return toHTML(container.parent, '', false, html)
