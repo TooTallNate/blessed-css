@@ -6,6 +6,13 @@ const { calculate: calculateSpecificity } = require('specificity')
 
 module.exports = createStyle
 
+// property names to map to HTML attributes when serializing as HTML
+const attrProps = new Set([
+  'name',
+  'id',
+  'draggable'
+])
+
 function parseClassName(className) {
   if (!className) {
     return []
@@ -29,25 +36,32 @@ function parseBools(o) {
   return o
 }
 
-function toHTML(container, selector = null, self = false, children = '') {
+function toHTML(container, selector = '', self = false, children = '') {
   const name = container.constructor.name.toLowerCase()
-  const classNames = [
+  const classNames = new Set([
     ...parseClassName(container.options.className),
-    ...parseClassName(container.options.classNames)
-  ]
-  if (selector) {
-    classNames.push(
-      ...selector
-        .split(':')
-        .filter(Boolean)
-        .map(s => `__pseudo_${s}`)
-    )
+    ...parseClassName(container.options.classNames),
+    ...selector
+      .split(':')
+      .filter(Boolean)
+      .map(s => `__pseudo_${s}`)
+  ])
+  let attrs = ''
+  if (classNames.size > 0) {
+    attrs += ` class="${Array.from(classNames).join(' ')}"`
   }
-  const html = `<${name} class="${classNames.join(' ')}"${
-    self ? ' self' : ''
-  }>${children}</${name}>`
+  for (const prop of attrProps) {
+    const val = container[prop] || container.options[prop]
+    if (typeof val === 'boolean') {
+      if (val) attrs += ` ${prop}`
+    } else if (val != null) {
+      attrs += ` ${prop}="${val}"`
+    }
+  }
+  if (self) attrs += ' self'
+  const html = `<${name}${attrs}>${children}</${name}>`
   if (container.parent) {
-    return toHTML(container.parent, null, false, html)
+    return toHTML(container.parent, '', false, html)
   } else {
     return html
   }
@@ -90,7 +104,7 @@ function createStyle(css) {
   //console.log(specificities)
   //console.log(Array.from(specificities.keys()))
 
-  function get(container, selector = null) {
+  function get(container, selector = '') {
     const html = toHTML(container, selector, true)
     //console.log(html)
 
