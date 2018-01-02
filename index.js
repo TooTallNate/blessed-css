@@ -43,8 +43,8 @@ function toHTML(container, selector = null, self = false, children = '') {
         .map(s => `__pseudo_${s}`)
     )
   }
-  const html = `<${name} class="${classNames.join(' ')}" ${
-    self ? 'self' : ''
+  const html = `<${name} class="${classNames.join(' ')}"${
+    self ? ' self' : ''
   }>${children}</${name}>`
   if (container.parent) {
     return toHTML(container.parent, null, false, html)
