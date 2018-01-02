@@ -109,7 +109,7 @@ function createStyle(css) {
 
     const dom = parseDOM(html)
 
-    const [self] = CSSselect.selectAll('[self]', dom)
+    const self = CSSselect.selectOne('[self]', dom)
 
     const matches = []
     for (const rule of rules) {
