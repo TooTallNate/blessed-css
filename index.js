@@ -76,12 +76,10 @@ function createStyle(css) {
 
   // getting json
   const json = ast.toJSON('simple')
-  //console.log(json.value)
 
   const rules = []
   const specificities = new Map()
   for (const rule of json.value) {
-    //console.error(rule)
     if (rule.type !== 'rule') {
       continue
     }
@@ -101,34 +99,23 @@ function createStyle(css) {
       )
     }
   }
-  //console.log(specificities)
-  //console.log(Array.from(specificities.keys()))
 
   function get(container, selector = '') {
     const html = toHTML(container, selector, true)
-    //console.log(html)
 
-    const [dom] = parseDOM(html)
+    const dom = parseDOM(html)
 
-    const [self] = CSSselect.selectAll('[self]', [dom])
-    //console.log(self)
+    const [self] = CSSselect.selectAll('[self]', dom)
 
     const matches = []
     for (const rule of rules) {
       for (const selector of rule.selectors) {
-        try {
-          const formattedSelector = selector.replace(/:/g, '.__pseudo_')
-          //console.error(formattedSelector)
-          const match = CSSselect.selectAll(formattedSelector, [dom]).some(
-            match => match === self
-          )
-          if (match) {
-            matches.push({ selector, rule })
-            //matches.set(selector, rule)
-            //console.log(rule)
-          }
-        } catch (err) {
-          console.error(selector, err)
+        const formattedSelector = selector.replace(/:/g, '.__pseudo_')
+        const match = CSSselect.selectAll(formattedSelector, dom).some(
+          match => match === self
+        )
+        if (match) {
+          matches.push({ selector, rule })
         }
       }
     }
@@ -138,7 +125,6 @@ function createStyle(css) {
         return specificities.get(a.selector) - specificities.get(b.selector)
       })
       .map(m => m.rule.declarations)
-    //console.log(sorted)
 
     return parseBools(extend({}, ...sorted))
   }
