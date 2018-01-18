@@ -1,3 +1,4 @@
+const debug = require('debug')('blessed-css')
 const extend = require('deep-extend')
 const CSSselect = require('css-select')
 const { parseDOM } = require('htmlparser2')
@@ -106,7 +107,7 @@ function createStyle(css) {
 
   function get(container, selector = '') {
     const html = toHTML(container, selector, true)
-
+    debug('Generated HTML %o', html)
     const dom = parseDOM(html)
 
     const self = CSSselect.selectOne('[self]', dom)
