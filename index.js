@@ -105,7 +105,7 @@ function createStyle(css) {
     }
   }
 
-  function get(container, selector = '') {
+  function get(container, selector = '', parentStyle = {}) {
     const html = toHTML(container, selector, true)
     debug('Generated HTML %o', html)
     const dom = parseDOM(html)
@@ -131,15 +131,16 @@ function createStyle(css) {
       })
       .map(m => m.rule.declarations)
 
-    return parseBools(extend({}, ...sorted))
+    return parseBools(extend(Object.create(parentStyle), ...sorted))
   }
 
   function addStyle(container) {
-    container.style = get(container)
-    container.style.border = get(container, ':border')
-    container.style.focus = get(container, ':focus')
-    container.style.hover = get(container, ':hover')
-    container.style.scrollbar = get(container, ':scrollbar')
+    const parentStyle = container.parent && container.parent.style
+    container.style = get(container, '', parentStyle)
+    container.style.border = get(container, ':border', parentStyle && parentStyle.border)
+    container.style.focus = get(container, ':focus', parentStyle && parentStyle.focus)
+    container.style.hover = get(container, ':hover', parentStyle && parentStyle.hover)
+    container.style.scrollbar = get(container, ':scrollbar', parentStyle && parentStyle.scrollbar)
     return container.style
   }
 
