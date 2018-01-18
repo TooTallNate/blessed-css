@@ -21,6 +21,7 @@ box:border {
 
 What works:
 
+- Inheriting styles from parent components
 - Node names (`box`, `form`, `button`, etc.)
 - ID names (`#background`)
 - Class names (`.dialog`)
