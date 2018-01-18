@@ -8,13 +8,7 @@ const { calculate: calculateSpecificity } = require('specificity')
 module.exports = createStyle
 
 // property names to map to HTML attributes when serializing as HTML
-const attrProps = new Set([
-  'name',
-  'id',
-  'draggable',
-  'scrollable',
-  'shadow'
-])
+const attrProps = new Set(['name', 'id', 'draggable', 'scrollable', 'shadow'])
 
 function parseClassName(className) {
   if (!className) {
@@ -44,10 +38,7 @@ function toHTML(container, selector = '', self = false, children = '') {
   const classNames = new Set([
     ...parseClassName(container.options.className),
     ...parseClassName(container.options.classNames),
-    ...selector
-      .split(':')
-      .filter(Boolean)
-      .map(s => `__pseudo_${s}`)
+    ...selector.split(':').filter(Boolean).map(s => `__pseudo_${s}`)
   ])
   let attrs = ''
   if (classNames.size > 0) {
@@ -96,8 +87,8 @@ function createStyle(css) {
       specificities.set(
         selector,
         parseInt(
-          calculateSpecificity(selector)[0]
-            .specificityArray.slice(1) // skip [0] because we don't consider inline styles
+          calculateSpecificity(selector)[0].specificityArray
+            .slice(1) // skip [0] because we don't consider inline styles
             .join(''),
           10
         )
@@ -137,10 +128,26 @@ function createStyle(css) {
   function addStyle(container) {
     const parentStyle = container.parent && container.parent.style
     container.style = get(container, '', parentStyle)
-    container.style.border = get(container, ':border', parentStyle && parentStyle.border)
-    container.style.focus = get(container, ':focus', parentStyle && parentStyle.focus)
-    container.style.hover = get(container, ':hover', parentStyle && parentStyle.hover)
-    container.style.scrollbar = get(container, ':scrollbar', parentStyle && parentStyle.scrollbar)
+    container.style.border = get(
+      container,
+      ':border',
+      parentStyle && parentStyle.border
+    )
+    container.style.focus = get(
+      container,
+      ':focus',
+      parentStyle && parentStyle.focus
+    )
+    container.style.hover = get(
+      container,
+      ':hover',
+      parentStyle && parentStyle.hover
+    )
+    container.style.scrollbar = get(
+      container,
+      ':scrollbar',
+      parentStyle && parentStyle.scrollbar
+    )
     return container.style
   }
 
