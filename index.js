@@ -131,24 +131,75 @@ function createStyle(css) {
     container.style.border = get(
       container,
       ':border',
-      parentStyle && parentStyle.border
-    )
-    container.style.focus = get(
-      container,
-      ':focus',
-      parentStyle && parentStyle.focus
-    )
-    container.style.hover = get(
-      container,
-      ':hover',
-      parentStyle && parentStyle.hover
+      container.style
     )
     container.style.scrollbar = get(
       container,
       ':scrollbar',
-      parentStyle && parentStyle.scrollbar
+      container.style
     )
+
+    // So in `blessed/lib/widgets/element.js` there's this bit of code:
+    //
+    //;[['hover', 'mouseover', 'mouseout', '_htemp'],
+    // ['focus', 'focus', 'blur', '_ftemp']].forEach(props => {
+    //  const pname = props[0], over = props[1], out = props[2], temp = props[3];
+    //  container.screen.setEffects(container, container, over, out, container.style[pname], temp);
+    //});
+    //
+    // Basically it sets up the "hover" and "focus" events. The problem is that
+    // the way it's currently implemented there is no way to change the styling
+    // if it was not initially passed in as an option to the element's
+    // constructor (the `container.style[pname]` part). This is problematic for
+    // the `blessed-css` API, where you compute the styles after creating the
+    // element. Therefore, the behavior is re-implemented here in a way that
+    // supports setting the effect's style lazily.
+    //
+    // XXX: There might be a need to ensure this function is only run once
+    // per effect name per container
+    setEffects(container, 'focus', 'focus', 'blur')
+    setEffects(container, 'hover', 'mouseover', 'mouseout')
+
     return container.style
+  }
+
+  const activeEffectsMap = new WeakMap()
+
+  function setEffects(container, name, over, out) {
+    let activeEffects = activeEffectsMap.get(container)
+    if (!activeEffects) {
+      activeEffects = new Set()
+      activeEffectsMap.set(container, activeEffects)
+    }
+
+    container.on(over, () => {
+      activeEffects.add(name)
+      renderEffects(container, activeEffects)
+    })
+
+    container.on(out, () => {
+      activeEffects.delete(name)
+      renderEffects(container, activeEffects)
+    })
+  }
+
+  function renderEffects(container, effects) {
+    // TODO: add compute caching
+    const effectStyle = get(
+      container,
+      Array.from(effects).map(e => `:${e}`).join(''),
+    )
+    for (const prop of Object.keys(container.style)) {
+      const v = container.style[prop]
+      if (typeof v !== 'object') {
+        container.style[prop] = null
+      }
+    }
+    for (const prop of Object.keys(effectStyle)) {
+      container.style[prop] = effectStyle[prop]
+    }
+
+    container.screen.render()
   }
 
   addStyle.get = get
