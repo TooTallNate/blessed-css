@@ -153,10 +153,13 @@ function createStyle(css) {
     // constructor (the `container.style[pname]` part). This is problematic for
     // the `blessed-css` API, where you compute the styles after creating the
     // element. Therefore, the behavior is re-implemented here in a way that
-    // supports setting the effect's style lazily.
+    // integrates with the CSS engine more cleanly.
     //
     // XXX: There might be a need to ensure this function is only run once
     // per effect name per container
+    activeEffectsMap.set(container, new Set)
+    // XXX: LRU instead of Map?
+    computedEffectsMap.set(container, new Map)
     setEffects(container, 'focus', 'focus', 'blur')
     setEffects(container, 'hover', 'mouseover', 'mouseout')
 
@@ -164,13 +167,10 @@ function createStyle(css) {
   }
 
   const activeEffectsMap = new WeakMap()
+  const computedEffectsMap = new WeakMap()
 
   function setEffects(container, name, over, out) {
     let activeEffects = activeEffectsMap.get(container)
-    if (!activeEffects) {
-      activeEffects = new Set()
-      activeEffectsMap.set(container, activeEffects)
-    }
 
     container.on(over, () => {
       activeEffects.add(name)
@@ -184,20 +184,28 @@ function createStyle(css) {
   }
 
   function renderEffects(container, effects) {
-    // TODO: add compute caching
-    const effectStyle = get(
-      container,
-      Array.from(effects).map(e => `:${e}`).join(''),
-    )
+    // Delete the current style properies to get a clean slate
+    //
+    // Note that we can't simply replace `container.style` with `effectStyle`:
+    //   1) Because of the sub-objects that need to remain (`border`, etc.)
+    //   2) Because of the way child elements' style inherits from the parents',
+    //      so the reference to the `style` object must not be lost or replaced
     for (const prop of Object.keys(container.style)) {
       const v = container.style[prop]
       if (typeof v !== 'object') {
         container.style[prop] = null
       }
     }
-    for (const prop of Object.keys(effectStyle)) {
-      container.style[prop] = effectStyle[prop]
+
+    const computedEffects = computedEffectsMap.get(container)
+    const selector = Array.from(effects).sort().map(e => `:${e}`).join('')
+    let effectStyle = computedEffects.get(selector)
+    if (!effectStyle) {
+      debug('Caching effect for %o %o', container.type, selector)
+      effectStyle = get(container, selector)
+      computedEffects.set(selector, effectStyle)
     }
+    extend(container.style, effectStyle)
 
     container.screen.render()
   }
