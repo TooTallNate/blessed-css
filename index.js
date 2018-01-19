@@ -96,7 +96,7 @@ function createStyle(css) {
     }
   }
 
-  function get(container, selector = '', parentStyle = {}) {
+  function get(container, selector = '', parentStyle = null, baseObj = {}) {
     const html = toHTML(container, selector, true)
     debug('Generated HTML %o', html)
     const dom = parseDOM(html)
@@ -122,22 +122,42 @@ function createStyle(css) {
       })
       .map(m => m.rule.declarations)
 
-    return parseBools(extend(Object.create(parentStyle), ...sorted))
+    const computed = parseBools(extend({}, ...sorted))
+
+    // When a selector is being calculated, compute the base styles
+    // and remove the ones that have not been explicitly overwritten
+    if (selector) {
+      const baseComputed = baseStyles.get(container)
+      for (const prop of Object.keys(computed)) {
+        if (computed[prop] === baseComputed[prop]) {
+          delete computed[prop]
+        }
+      }
+    }
+
+    // Prototype chain is set up like:
+    //   parentStyle -> style -> baseObj
+    const style = parentStyle
+      ? extend(Object.create(parentStyle), computed)
+      : computed
+    Object.setPrototypeOf(baseObj, style)
+    return baseObj
   }
 
   function addStyle(container) {
     const parentStyle = container.parent && container.parent.style
-    container.style = get(container, '', parentStyle)
-    container.style.border = get(
-      container,
-      ':border',
-      container.style
-    )
-    container.style.scrollbar = get(
-      container,
-      ':scrollbar',
-      container.style
-    )
+    container.style = get(container, '', parentStyle, container.options.style)
+    baseStyles.set(container, Object.getPrototypeOf(container.style));
+
+    for (const prop of ['border', 'scrollbar']) {
+      const base = container.style.hasOwnProperty(prop) ? container.style[prop] : {}
+      container.style[prop] = get(
+        container,
+        `:${prop}`,
+        container.style,
+        base
+      )
+    }
 
     // So in `blessed/lib/widgets/element.js` there's this bit of code:
     //
@@ -157,15 +177,15 @@ function createStyle(css) {
     //
     // XXX: There might be a need to ensure this function is only run once
     // per effect name per container
-    activeEffectsMap.set(container, new Set)
-    // XXX: LRU instead of Map?
-    computedEffectsMap.set(container, new Map)
+    activeEffectsMap.set(container, new Set())
+    computedEffectsMap.set(container, new Map())
     setEffects(container, 'focus', 'focus', 'blur')
     setEffects(container, 'hover', 'mouseover', 'mouseout')
 
     return container.style
   }
 
+  const baseStyles = new WeakMap()
   const activeEffectsMap = new WeakMap()
   const computedEffectsMap = new WeakMap()
 
@@ -184,7 +204,7 @@ function createStyle(css) {
   }
 
   function renderEffects(container, effects) {
-    // Delete the current style properies to get a clean slate
+    // Delete the current style properties to get a clean slate
     //
     // Note that we can't simply replace `container.style` with `effectStyle`:
     //   1) Because of the sub-objects that need to remain (`border`, etc.)
@@ -199,13 +219,14 @@ function createStyle(css) {
 
     const computedEffects = computedEffectsMap.get(container)
     const selector = Array.from(effects).sort().map(e => `:${e}`).join('')
-    let effectStyle = computedEffects.get(selector)
+    const baseStyle = baseStyles.get(container)
+    let effectStyle = selector ? computedEffects.get(selector) : baseStyle
     if (!effectStyle) {
-      debug('Caching effect for %o %o', container.type, selector)
-      effectStyle = get(container, selector)
+      debug('Caching effect styles for %o %o', container.type, selector)
+      effectStyle = get(container, selector, baseStyle)
       computedEffects.set(selector, effectStyle)
     }
-    extend(container.style, effectStyle)
+    Object.setPrototypeOf(container.style, effectStyle)
 
     container.screen.render()
   }
