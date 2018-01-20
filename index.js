@@ -204,19 +204,6 @@ function createStyle(css) {
   }
 
   function renderEffects(container, effects) {
-    // Delete the current style properties to get a clean slate
-    //
-    // Note that we can't simply replace `container.style` with `effectStyle`:
-    //   1) Because of the sub-objects that need to remain (`border`, etc.)
-    //   2) Because of the way child elements' style inherits from the parents',
-    //      so the reference to the `style` object must not be lost or replaced
-    for (const prop of Object.keys(container.style)) {
-      const v = container.style[prop]
-      if (typeof v !== 'object') {
-        container.style[prop] = null
-      }
-    }
-
     const computedEffects = computedEffectsMap.get(container)
     const selector = Array.from(effects).sort().map(e => `:${e}`).join('')
     const baseStyle = baseStyles.get(container)
