@@ -146,11 +146,22 @@ function createStyle(css) {
 
   function addStyle(container) {
     const parentStyle = container.parent && container.parent.style
-    container.style = get(container, '', parentStyle, container.options.style)
+    const inlineStyle = container.options.style
+    container.style = get(container, '', parentStyle, inlineStyle)
     baseStyles.set(container, Object.getPrototypeOf(container.style));
 
     for (const prop of ['border', 'scrollbar']) {
-      const base = container.style.hasOwnProperty(prop) ? container.style[prop] : {}
+      const base = inlineStyle && inlineStyle[prop]
+      if (base) {
+        // Blessed does a weird thing where is adds a default `border` object with
+        // `bg` and `fg` set to `undefined`, which gets in the way of prototyal
+        // inheritance, so remove any undefined values first
+        for (const prop of Object.keys(base)) {
+          if (typeof base[prop] === 'undefined') {
+            delete base[prop]
+          }
+        }
+      }
       container.style[prop] = get(
         container,
         `:${prop}`,
