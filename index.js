@@ -96,7 +96,7 @@ function createStyle(css) {
     }
   }
 
-  function get(container, selector = '', parentStyle = null, baseObj = {}) {
+  function get(container, selector = '', parentStyle = null, inlineStyle = {}) {
     const html = toHTML(container, selector, true)
     debug('Generated HTML %o', html)
     const dom = parseDOM(html)
@@ -136,12 +136,12 @@ function createStyle(css) {
     }
 
     // Prototype chain is set up like:
-    //   parentStyle -> style -> baseObj
-    const style = parentStyle
+    //   parentStyle -> computedStyle -> inlineStyle
+    const computedStyle = parentStyle
       ? extend(Object.create(parentStyle), computed)
       : computed
-    Object.setPrototypeOf(baseObj, style)
-    return baseObj
+    Object.setPrototypeOf(inlineStyle, computedStyle)
+    return inlineStyle
   }
 
   function addStyle(container) {
