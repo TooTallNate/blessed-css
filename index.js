@@ -5,6 +5,8 @@ const { parseDOM } = require('htmlparser2')
 const cssparser = require('cssparser/lib/cssparser')
 const { calculate: calculateSpecificity } = require('specificity')
 
+const { initHover } = require('./hover')
+
 module.exports = createStyle
 
 // property names to map to HTML attributes when serializing as HTML
@@ -100,6 +102,8 @@ function createStyle(css) {
   }
 
   function get(container, selector = '', parentStyle = null, inlineStyle = {}) {
+    initHover(container.screen)
+
     const html = toHTML(container, selector, true)
     debug('Generated HTML %o', html)
     const dom = parseDOM(html)
@@ -193,8 +197,8 @@ function createStyle(css) {
     // per effect name per container
     activeEffectsMap.set(container, new Set())
     computedEffectsMap.set(container, new Map())
-    setEffects(container, 'focus', 'focus', 'blur')
-    setEffects(container, 'hover', 'mouseover', 'mouseout')
+    bindEffects(container, 'focus', 'focus', 'blur')
+    bindEffects(container, 'hover', 'css mouseover', 'css mouseout')
 
     return container.style
   }
@@ -203,7 +207,7 @@ function createStyle(css) {
   const activeEffectsMap = new WeakMap()
   const computedEffectsMap = new WeakMap()
 
-  function setEffects(container, name, over, out) {
+  function bindEffects(container, name, over, out) {
     let activeEffects = activeEffectsMap.get(container)
 
     container.on(over, () => {
