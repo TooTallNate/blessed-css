@@ -127,7 +127,7 @@ function createStyle(css) {
     // When a selector is being calculated, compute the base styles
     // and remove the ones that have not been explicitly overwritten
     if (selector) {
-      const baseComputed = baseStyles.get(container)
+      const baseComputed = baseStylesMap.get(container).get('')
       for (const prop of Object.keys(computed)) {
         if (computed[prop] === baseComputed[prop]) {
           delete computed[prop]
@@ -148,7 +148,11 @@ function createStyle(css) {
     const parentStyle = container.parent && container.parent.style
     const inlineStyle = container.options.style
     container.style = get(container, '', parentStyle, inlineStyle)
-    baseStyles.set(container, Object.getPrototypeOf(container.style));
+
+    const baseStyles = new Map()
+    baseStylesMap.set(container, baseStyles)
+
+    baseStyles.set('', Object.getPrototypeOf(container.style))
 
     for (const prop of ['border', 'scrollbar']) {
       const base = inlineStyle && inlineStyle[prop]
@@ -162,12 +166,8 @@ function createStyle(css) {
           }
         }
       }
-      container.style[prop] = get(
-        container,
-        `:${prop}`,
-        container.style,
-        base
-      )
+      container.style[prop] = get(container, `:${prop}`, container.style, base)
+      baseStyles.set(prop, Object.getPrototypeOf(container.style[prop]))
     }
 
     // So in `blessed/lib/widgets/element.js` there's this bit of code:
@@ -196,7 +196,7 @@ function createStyle(css) {
     return container.style
   }
 
-  const baseStyles = new WeakMap()
+  const baseStylesMap = new WeakMap()
   const activeEffectsMap = new WeakMap()
   const computedEffectsMap = new WeakMap()
 
@@ -214,17 +214,28 @@ function createStyle(css) {
     })
   }
 
-  function renderEffects(container, effects) {
+  function setEffect(container, effectSelector, prop = '') {
     const computedEffects = computedEffectsMap.get(container)
-    const selector = Array.from(effects).sort().map(e => `:${e}`).join('')
-    const baseStyle = baseStyles.get(container)
-    let effectStyle = selector ? computedEffects.get(selector) : baseStyle
+    const style = prop ? container.style[prop] : container.style
+    const baseStyle = baseStylesMap.get(container).get(prop)
+
+    const selector = prop ? `${effectSelector}:${prop}` : effectSelector
+    let effectStyle = effectSelector ? computedEffects.get(selector) : baseStyle
     if (!effectStyle) {
       debug('Caching effect styles for %o %o', container.type, selector)
       effectStyle = get(container, selector, baseStyle)
       computedEffects.set(selector, effectStyle)
     }
-    Object.setPrototypeOf(container.style, effectStyle)
+    Object.setPrototypeOf(style, effectStyle)
+  }
+
+  function renderEffects(container, effects) {
+    const selector = Array.from(effects).sort().map(e => `:${e}`).join('')
+
+    setEffect(container, selector)
+    for (const prop of Object.getOwnPropertyNames(container.style)) {
+      setEffect(container, selector, prop)
+    }
 
     container.screen.render()
   }
