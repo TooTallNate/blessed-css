@@ -228,7 +228,12 @@ function createStyle(css) {
   function setEffect(container, effectSelector, prop = '') {
     const computedEffects = computedEffectsMap.get(container)
     const style = prop ? container.style[prop] : container.style
-    const baseStyle = baseStylesMap.get(container).get(prop)
+    const baseStyles = baseStylesMap.get(container)
+    let baseStyle = baseStyles.get(prop)
+    if (!baseStyle) {
+      baseStyle = Object.getPrototypeOf(style)
+      baseStyles.set(prop, baseStyle)
+    }
 
     const selector = prop ? `${effectSelector}:${prop}` : effectSelector
     let effectStyle = effectSelector ? computedEffects.get(selector) : baseStyle
