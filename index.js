@@ -239,7 +239,7 @@ function createStyle(css) {
       .join('')
 
     setEffect(container, selector)
-    for (const prop of Object.getOwnPropertyNames(container.style)) {
+    for (const prop of Object.keys(container.style)) {
       setEffect(container, selector, prop)
     }
 
