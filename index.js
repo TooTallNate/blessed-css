@@ -38,7 +38,10 @@ function toHTML(container, selector = '', self = false, children = '') {
   const classNames = new Set([
     ...parseClassName(container.options.className),
     ...parseClassName(container.options.classNames),
-    ...selector.split(':').filter(Boolean).map(s => `__pseudo_${s}`)
+    ...selector
+      .split(':')
+      .filter(Boolean)
+      .map(s => `__pseudo_${s}`)
   ])
   let attrs = ''
   if (classNames.size > 0) {
@@ -87,8 +90,8 @@ function createStyle(css) {
       specificities.set(
         selector,
         parseInt(
-          calculateSpecificity(selector)[0].specificityArray
-            .slice(1) // skip [0] because we don't consider inline styles
+          calculateSpecificity(selector)[0]
+            .specificityArray.slice(1) // skip [0] because we don't consider inline styles
             .join(''),
           10
         )
@@ -230,7 +233,10 @@ function createStyle(css) {
   }
 
   function renderEffects(container, effects) {
-    const selector = Array.from(effects).sort().map(e => `:${e}`).join('')
+    const selector = Array.from(effects)
+      .sort()
+      .map(e => `:${e}`)
+      .join('')
 
     setEffect(container, selector)
     for (const prop of Object.getOwnPropertyNames(container.style)) {
