@@ -102,7 +102,11 @@ function createStyle(css) {
   }
 
   function get(container, selector = '', parentStyle = null, inlineStyle = {}) {
-    initHover(container.screen)
+    const { screen } = container
+    initHover(screen)
+    // register `container` as "clickable" to make "hover" events work
+    // XXX: undocumented API :(
+    screen._listenMouse(container)
 
     const html = toHTML(container, selector, true)
     debug('Generated HTML %o', html)
