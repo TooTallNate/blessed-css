@@ -31,13 +31,15 @@ function onMouseMove(data) {
 
   // ones that are in `newHovered`, but not yet in `hovered`
   const mouseenter = difference(newHovered, hovered)
+
+  // ones that are in `hovered`, but no longer in `newHovered`
+  const mouseleave = difference(hovered, newHovered)
+
   for (const el of mouseenter) {
     el.emit('mouseenter', data)
     hovered.add(el)
   }
 
-  // ones that are in `hovered`, but no longer in `newHovered`
-  const mouseleave = difference(hovered, newHovered)
   for (const el of mouseleave) {
     el.emit('mouseleave', data)
     hovered.delete(el)
