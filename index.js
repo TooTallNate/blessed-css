@@ -198,7 +198,7 @@ function createStyle(css) {
     activeEffectsMap.set(container, new Set())
     computedEffectsMap.set(container, new Map())
     bindEffects(container, 'focus', 'focus', 'blur')
-    bindEffects(container, 'hover', 'css mouseover', 'css mouseout')
+    bindEffects(container, 'hover', 'mouseenter', 'mouseleave')
 
     return container.style
   }
