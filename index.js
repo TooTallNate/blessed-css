@@ -169,7 +169,7 @@ function createStyle(css) {
       const base = inlineStyle && inlineStyle[prop]
       if (base) {
         // Blessed does a weird thing where is adds a default `border` object with
-        // `bg` and `fg` set to `undefined`, which gets in the way of prototyal
+        // `bg` and `fg` set to `undefined`, which gets in the way of prototypal
         // inheritance, so remove any undefined values first
         for (const prop of Object.keys(base)) {
           if (typeof base[prop] === 'undefined') {
