@@ -36,7 +36,7 @@ function parseBools(o) {
 }
 
 function toHTML(container, selector = '', self = false, children = '') {
-  const name = container.constructor.name.toLowerCase()
+  const name = container.type
   const classNames = new Set([
     ...parseClassName(container.options.className),
     ...parseClassName(container.options.classNames),
