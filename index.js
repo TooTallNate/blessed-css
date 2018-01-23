@@ -10,7 +10,19 @@ const { initHover } = require('./hover')
 module.exports = createStyle
 
 // property names to map to HTML attributes when serializing as HTML
-const attrProps = new Set(['name', 'id', 'draggable', 'scrollable', 'shadow'])
+const attrProps = ['name', 'id', 'draggable', 'scrollable', 'shadow']
+
+const pseudoStyles = {
+  element: ['border'],
+  list: ['selected', 'item'],
+  listbar: ['selected', 'item', 'prefix'],
+  'progress-bar': ['bar'],
+  'scrollable-box': ['track', 'scrollbar'],
+  table: ['cell', 'header']
+}
+
+// "list-table" is both "list" and "table"
+pseudoStyles['list-table'] = [...pseudoStyles.list, ...pseudoStyles.table]
 
 function parseClassName(className) {
   if (!className) {
@@ -33,6 +45,18 @@ function parseBools(o) {
     }
   }
   return o
+}
+
+function getPseudoStyles(el) {
+  const props = []
+  let proto = Object.getPrototypeOf(el)
+  while (proto && proto.type) {
+    if (pseudoStyles[proto.type]) {
+      props.push(...pseudoStyles[proto.type])
+    }
+    proto = Object.getPrototypeOf(proto)
+  }
+  return new Set(props)
 }
 
 function toHTML(container, selector = '', self = false, children = '') {
@@ -165,7 +189,7 @@ function createStyle(css) {
 
     baseStyles.set('', Object.getPrototypeOf(container.style))
 
-    for (const prop of ['border', 'scrollbar']) {
+    for (const prop of getPseudoStyles(container)) {
       const base = inlineStyle && inlineStyle[prop]
       if (base) {
         // Blessed does a weird thing where is adds a default `border` object with
