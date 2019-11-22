@@ -23,6 +23,35 @@ test('Node type styles', async () => {
 	}
 });
 
+test('Inline styles', async () => {
+	const screen = blessed.screen();
+	try {
+		const box = blessed.box({
+			parent: screen,
+			style: {
+				fg: 'black',
+				transparent: false,
+				underline: true
+			}
+		});
+		css(`
+		  box {
+		    bg: blue;
+		    fg: red;
+		    bold: true;
+			underline: false;
+		  }
+		`)(box);
+		assert.equal(box.style.bg, 'blue');
+		assert.equal(box.style.fg, 'black');
+		assert.equal(box.style.bold, true);
+		assert.equal(box.style.transparent, false);
+		assert.equal(box.style.underline, true);
+	} finally {
+		screen.destroy();
+	}
+});
+
 test('#id styles', async () => {
 	const screen = blessed.screen();
 	try {
@@ -83,8 +112,7 @@ test('`:border` styles', async () => {
 	const screen = blessed.screen();
 	try {
 		const box = blessed.box({
-			parent: screen,
-			id: 'theid'
+			parent: screen
 		});
 		css(`
 		  box {
@@ -93,7 +121,7 @@ test('`:border` styles', async () => {
 		    bold: true;
 		  }
 
-		  box:border {
+		  :border {
 		    fg: black;
 		    bold: false;
 		  }
