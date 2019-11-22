@@ -2,14 +2,36 @@
   "name": "blessed-css",
   "version": "2.2.0",
   "description": "CSS engine for blessed",
-  "main": "./index.js",
+  "main": "dist/index",
+  "typings": "dist/index",
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "prebuild": "rimraf dist",
+    "build": "tsc",
+    "test": "jest",
+    "test-lint": "eslint src --ext .js,.ts",
+    "prepublishOnly": "npm run build"
   },
-  "keywords": [],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/TooTallNate/blessed-css.git"
+  },
+  "keywords": [
+    "blessed",
+    "curses",
+    "css",
+    "engine",
+    "parser"
+  ],
   "author": "Nathan Rajlich <n@n8.io>",
   "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/TooTallNate/blessed-css/issues"
+  },
   "dependencies": {
+    "@types/blessed": "https://files-drl4s7gad.n8.io",
     "css-select": "^2.1.0",
     "cssparser": "^0.9.4",
     "debug": "^4.1.1",
@@ -18,6 +40,26 @@
     "specificity": "^0.4.1"
   },
   "devDependencies": {
-    "blessed": "^0.1.81"
+    "@types/debug": "^4.1.5",
+    "@types/deep-extend": "^0.4.31",
+    "@types/jest": "^24.0.23",
+    "@types/node": "^12.12.11",
+    "@typescript-eslint/eslint-plugin": "1.6.0",
+    "@typescript-eslint/parser": "1.1.0",
+    "blessed": "^0.1.81",
+    "eslint": "5.16.0",
+    "eslint-config-airbnb": "17.1.0",
+    "eslint-config-prettier": "4.1.0",
+    "eslint-import-resolver-typescript": "1.1.1",
+    "eslint-plugin-import": "2.16.0",
+    "eslint-plugin-jsx-a11y": "6.2.1",
+    "eslint-plugin-react": "7.12.4",
+    "jest": "^24.9.0",
+    "rimraf": "^3.0.0",
+    "ts-jest": "^24.1.0",
+    "typescript": "^3.5.3"
+  },
+  "engines": {
+    "node": ">= 6.0.0"
   }
 }

@@ -1,22 +1,36 @@
+import blessed from 'blessed';
+
+// TODO: PR this change upstream
+interface ScreenWithClickable extends blessed.Widgets.Screen {
+	clickable: blessed.Widgets.BlessedElement[];
+}
+
 // http://2ality.com/2015/01/es6-set-operations.html#difference
-const difference = (a, b) => [...a].filter(x => !b.has(x));
+function difference<T>(a: Set<T>, b: Set<T>): T[] {
+	return [...a].filter(x => !b.has(x));
+}
 
-module.exports = {
-	initHover
-};
+const hoveredMap = new WeakMap<
+	blessed.Widgets.Screen,
+	Set<blessed.Widgets.BlessedElement>
+>();
 
-const hoveredMap = new WeakMap();
-
-function initHover(screen) {
+export function initHover(screen: blessed.Widgets.Screen) {
 	if (hoveredMap.has(screen)) return;
 	hoveredMap.set(screen, new Set());
 	screen.on('mousemove', onMouseMove);
 }
 
-function onMouseMove(data) {
+function onMouseMove(
+	this: ScreenWithClickable,
+	data: blessed.Widgets.Events.IMouseEventArg
+) {
 	const screen = this;
 	const hovered = hoveredMap.get(screen);
-	const newHovered = new Set();
+	if (!hovered) {
+		return;
+	}
+	const newHovered = new Set<blessed.Widgets.BlessedElement>();
 
 	for (const el of screen.clickable) {
 		if (el.detached || !el.visible) {

@@ -1,109 +1,23 @@
-const debug = require('debug')('blessed-css');
-const extend = require('deep-extend');
-const CSSselect = require('css-select');
-const { parseDOM } = require('htmlparser2');
-const cssparser = require('cssparser/lib/cssparser');
-const { calculate: calculateSpecificity } = require('specificity');
+import blessed from 'blessed';
+import createDebug from 'debug';
+import extend from 'deep-extend';
+import CSSselect from 'css-select';
+import { parseDOM } from 'htmlparser2';
+import { Parser as CssParser, Rule } from 'cssparser/lib/cssparser';
+import { calculate as calculateSpecificity } from 'specificity';
 
-const { initHover } = require('./hover');
+import { initHover } from './hover';
+import { getPseudoStyles, parseBools, toHTML, Styles } from './util';
 
-module.exports = createStyle;
+const debug = createDebug('blessed-css');
 
-// property names to map to HTML attributes when serializing as HTML
-const attrProps = ['name', 'id', 'draggable', 'scrollable', 'shadow'];
-
-const pseudoStyles = {
-	element: ['border'],
-	list: ['selected', 'item'],
-	listbar: ['selected', 'item', 'prefix'],
-	'progress-bar': ['bar'],
-	'scrollable-box': ['track', 'scrollbar'],
-	table: ['cell', 'header']
-};
-
-// "list-table" is both "list" and "table"
-pseudoStyles['list-table'] = [...pseudoStyles.list, ...pseudoStyles.table];
-
-function parseClassName(className) {
-	if (!className) {
-		return [];
-	} else if (typeof className === 'string') {
-		return className.split(' ');
-	} else {
-		return Array.from(className);
-	}
-}
-
-function parseBools(o) {
-	for (const k of Object.keys(o)) {
-		if (o[k] === 'true') {
-			o[k] = true;
-		} else if (o[k] === 'false') {
-			o[k] = false;
-		} else if (o[k] && typeof o[k] === 'object') {
-			parseBools(o[k]);
-		}
-	}
-	return o;
-}
-
-function getPseudoStyles(el) {
-	const props = [];
-	let proto = Object.getPrototypeOf(el);
-	while (proto && proto.type) {
-		if (pseudoStyles[proto.type]) {
-			props.push(...pseudoStyles[proto.type]);
-		}
-		proto = Object.getPrototypeOf(proto);
-	}
-	return new Set(props);
-}
-
-function toHTML(container, selector = '', self = false, children = '') {
-	const name = container.type;
-	const classNames = new Set([
-		...parseClassName(container.options.className),
-		...parseClassName(container.options.classNames),
-		...selector
-			.split(':')
-			.filter(Boolean)
-			.map(s => `__pseudo_${s}`)
-	]);
-	let attrs = '';
-	if (classNames.size > 0) {
-		attrs += ` class="${Array.from(classNames).join(' ')}"`;
-	}
-	for (const prop of attrProps) {
-		const val = container[prop] || container.options[prop];
-		if (typeof val === 'boolean' && val) {
-			attrs += ` ${prop}`;
-		} else if (val != null) {
-			attrs += ` ${prop}="${val}"`;
-		}
-	}
-	if (self) {
-		attrs += ' self';
-	}
-	const html = `<${name}${attrs}>${children}</${name}>`;
-	if (container.parent) {
-		return toHTML(container.parent, '', false, html);
-	} else {
-		return html;
-	}
-}
-
-function createStyle(css) {
-	// create new instance of Parser
-	const parser = new cssparser.Parser();
-
-	// parse
+function createStyle(css: string) {
+	const parser = new CssParser();
 	const ast = parser.parse(css);
-
-	// getting json
 	const json = ast.toJSON('simple');
 
-	const rules = [];
-	const specificities = new Map();
+	const rules: Rule[] = [];
+	const specificities = new Map<string, number>();
 	for (const rule of json.value) {
 		if (rule.type !== 'rule') {
 			continue;
@@ -125,16 +39,31 @@ function createStyle(css) {
 		}
 	}
 
+	const baseStylesMap = new WeakMap<
+		blessed.Widgets.BlessedElement,
+		Map<string, Styles>
+	>();
+	const activeEffectsMap = new WeakMap<
+		blessed.Widgets.BlessedElement,
+		Set<string>
+	>();
+	const computedEffectsMap = new WeakMap<
+		blessed.Widgets.BlessedElement,
+		Map<string, Styles>
+	>();
+
 	function get(
-		container,
+		container: blessed.Widgets.BlessedElement,
 		selector = '',
-		parentStyle = null,
-		inlineStyle = {}
-	) {
+		parentStyle: Styles | null = null,
+		inlineStyle: Styles = {}
+	): Styles {
 		const { screen } = container;
 		initHover(screen);
+
 		// register `container` as "clickable" to make "hover" events work
 		// XXX: undocumented API :(
+		// @ts-ignore
 		screen._listenMouse(container);
 
 		const html = toHTML(container, selector, true);
@@ -159,21 +88,24 @@ function createStyle(css) {
 		const sorted = matches
 			.sort((a, b) => {
 				return (
-					specificities.get(a.selector) -
-					specificities.get(b.selector)
+					specificities.get(a.selector)! -
+					specificities.get(b.selector)!
 				);
 			})
 			.map(m => m.rule.declarations);
 
-		const computed = parseBools(extend({}, ...sorted));
+		const computed: Styles = extend({}, ...sorted);
+		parseBools(computed);
 
 		// When a selector is being calculated, compute the base styles
 		// and remove the ones that have not been explicitly overwritten
 		if (selector) {
-			const baseComputed = baseStylesMap.get(container).get('');
-			for (const prop of Object.keys(computed)) {
-				if (computed[prop] === baseComputed[prop]) {
-					delete computed[prop];
+			const baseComputed = baseStylesMap.get(container)!.get('');
+			if (baseComputed) {
+				for (const prop of Object.keys(computed)) {
+					if (computed[prop] === baseComputed[prop]) {
+						delete computed[prop];
+					}
 				}
 			}
 		}
@@ -187,12 +119,13 @@ function createStyle(css) {
 		return inlineStyle;
 	}
 
-	function addStyle(container) {
+	function addStyle(container: blessed.Widgets.BlessedElement): Styles {
+		// @ts-ignore
 		const parentStyle = container.parent && container.parent.style;
 		const inlineStyle = container.options.style;
 		container.style = get(container, '', parentStyle, inlineStyle);
 
-		const baseStyles = new Map();
+		const baseStyles = new Map<string, Styles>();
 		baseStylesMap.set(container, baseStyles);
 
 		baseStyles.set('', Object.getPrototypeOf(container.style));
@@ -244,12 +177,16 @@ function createStyle(css) {
 		return container.style;
 	}
 
-	const baseStylesMap = new WeakMap();
-	const activeEffectsMap = new WeakMap();
-	const computedEffectsMap = new WeakMap();
-
-	function bindEffects(container, name, over, out) {
-		let activeEffects = activeEffectsMap.get(container);
+	function bindEffects(
+		container: blessed.Widgets.BlessedElement,
+		name: string,
+		over: string,
+		out: string
+	) {
+		const activeEffects = activeEffectsMap.get(container);
+		if (!activeEffects) {
+			return;
+		}
 
 		container.on(over, () => {
 			activeEffects.add(name);
@@ -262,14 +199,21 @@ function createStyle(css) {
 		});
 	}
 
-	function setEffect(container, effectSelector, prop = '') {
+	function setEffect(
+		container: blessed.Widgets.BlessedElement,
+		effectSelector: string,
+		prop = ''
+	) {
 		const computedEffects = computedEffectsMap.get(container);
+		if (!computedEffects) {
+			return;
+		}
 		const style = prop ? container.style[prop] : container.style;
-		const baseStyles = baseStylesMap.get(container);
+		const baseStyles = baseStylesMap.get(container)!;
 		let baseStyle = baseStyles.get(prop);
 		if (!baseStyle) {
 			baseStyle = Object.getPrototypeOf(style);
-			baseStyles.set(prop, baseStyle);
+			baseStyles.set(prop, baseStyle!);
 		}
 
 		const selector = prop ? `${effectSelector}:${prop}` : effectSelector;
@@ -284,7 +228,10 @@ function createStyle(css) {
 		Object.setPrototypeOf(style, effectStyle);
 	}
 
-	function renderEffects(container, effects) {
+	function renderEffects(
+		container: blessed.Widgets.BlessedElement,
+		effects: Iterable<string>
+	) {
 		const selector = Array.from(effects)
 			.sort()
 			.map(e => `:${e}`)
@@ -302,3 +249,5 @@ function createStyle(css) {
 
 	return addStyle;
 }
+
+export = createStyle;
