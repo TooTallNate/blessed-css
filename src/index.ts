@@ -11,6 +11,10 @@ import { getPseudoStyles, parseBools, toHTML, Styles } from './util';
 
 const debug = createDebug('blessed-css');
 
+function hasStyle(v: any): v is { style: Styles } {
+	return Boolean(v && v.style);
+}
+
 function createStyle(css: string) {
 	const parser = new CssParser();
 	const ast = parser.parse(css);
@@ -120,8 +124,9 @@ function createStyle(css: string) {
 	}
 
 	function addStyle(container: blessed.Widgets.BlessedElement): Styles {
-		// @ts-ignore
-		const parentStyle = container.parent && container.parent.style;
+		const parentStyle = hasStyle(container.parent)
+			? container.parent.style
+			: null;
 		const inlineStyle = container.options.style;
 		container.style = get(container, '', parentStyle, inlineStyle);
 
