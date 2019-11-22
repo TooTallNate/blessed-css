@@ -18,7 +18,11 @@ test('parseBools()', async () => {
 
 	const c = { bold: 'false', inverse: 'false', border: { bold: 'true' } };
 	parseBools(c);
-	assert.deepEqual(c, { bold: false, inverse: false, border: { bold: true } });
+	assert.deepEqual(c, {
+		bold: false,
+		inverse: false,
+		border: { bold: true }
+	});
 });
 
 test('parseClassName()', async () => {
@@ -132,6 +136,15 @@ test('toHTML()', async () => {
 			html,
 			'<screen><box class="foo bar" name="thename" id="theid" shadow></box></screen>'
 		);
+
+		// `Box` with `draggable: false`
+		node = blessed.box({
+			parent: screen,
+			draggable: false
+		});
+
+		html = toHTML(node);
+		assert.equal(html, '<screen><box></box></screen>');
 	} finally {
 		screen.destroy();
 	}

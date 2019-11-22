@@ -108,7 +108,7 @@ test('.className styles', async () => {
 	}
 });
 
-test('`:border` styles', async () => {
+test(':border styles', async () => {
 	const screen = blessed.screen();
 	try {
 		const box = blessed.box({
@@ -133,6 +133,45 @@ test('`:border` styles', async () => {
 		assert.equal(box.style.border.bg, 'blue');
 		assert.equal(box.style.border.fg, 'black');
 		assert.equal(box.style.border.bold, false);
+	} finally {
+		screen.destroy();
+	}
+});
+
+test('[draggable] styles', async () => {
+	const screen = blessed.screen();
+	try {
+		const style = css(`
+		  box {
+		    bg: blue;
+		    fg: red;
+		    bold: true;
+		  }
+
+		  [draggable] {
+		    fg: black;
+		    bold: false;
+		  }
+		`);
+		const draggable = blessed.box({
+			parent: screen,
+			draggable: true
+		});
+		style(draggable);
+		assert.equal(draggable.draggable, true);
+		assert.equal(draggable.style.bg, 'blue');
+		assert.equal(draggable.style.fg, 'black');
+		assert.equal(draggable.style.bold, false);
+
+		const notDraggable = blessed.box({
+			parent: screen,
+			draggable: false
+		});
+		style(notDraggable);
+		assert.equal(notDraggable.draggable, false);
+		assert.equal(notDraggable.style.bg, 'blue');
+		assert.equal(notDraggable.style.fg, 'red');
+		assert.equal(notDraggable.style.bold, true);
 	} finally {
 		screen.destroy();
 	}

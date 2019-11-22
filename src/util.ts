@@ -88,8 +88,10 @@ export function toHTML(
 	for (const prop of attrProps) {
 		// @ts-ignore
 		const val = node[prop] || node.options[prop];
-		if (typeof val === 'boolean' && val) {
-			attrs += ` ${prop}`;
+		if (typeof val === 'boolean') {
+			if (val) {
+				attrs += ` ${prop}`;
+			}
 		} else if (val != null) {
 			attrs += ` ${prop}="${val}"`;
 		}
