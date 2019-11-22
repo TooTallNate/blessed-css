@@ -33,7 +33,7 @@ export function parseClassName(
 	let arr: string[] = [];
 	if (className) {
 		if (typeof className === 'string') {
-			arr = className.split(' ');
+			arr = className.split(/\s+/);
 		} else {
 			arr = Array.from(className);
 		}
