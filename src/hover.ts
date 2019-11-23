@@ -21,7 +21,7 @@ export function initHover(screen: blessed.Widgets.Screen) {
 	screen.on('mousemove', onMouseMove);
 }
 
-function onMouseMove(
+export function onMouseMove(
 	this: ScreenWithClickable,
 	data: blessed.Widgets.Events.IMouseEventArg
 ) {
