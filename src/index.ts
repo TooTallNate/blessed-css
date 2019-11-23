@@ -158,11 +158,13 @@ function createStyle(css: string) {
 
 		// So in `blessed/lib/widgets/element.js` there's this bit of code:
 		//
-		//;[['hover', 'mouseover', 'mouseout', '_htemp'],
-		// ['focus', 'focus', 'blur', '_ftemp']].forEach(props => {
-		//  const pname = props[0], over = props[1], out = props[2], temp = props[3];
-		//  container.screen.setEffects(container, container, over, out, container.style[pname], temp);
-		//});
+		// ```
+		// ;[['hover', 'mouseover', 'mouseout', '_htemp'],
+		//  ['focus', 'focus', 'blur', '_ftemp']].forEach(props => {
+		//   const pname = props[0], over = props[1], out = props[2], temp = props[3];
+		//   container.screen.setEffects(container, container, over, out, container.style[pname], temp);
+		// });
+		// ```
 		//
 		// Basically it sets up the "hover" and "focus" events. The problem is that
 		// the way it's currently implemented there is no way to change the styling

@@ -176,3 +176,40 @@ test('[draggable] styles', async () => {
 		screen.destroy();
 	}
 });
+
+test('"mouseenter"/"mouseleave" events', async () => {
+	let mouseenterCount = 0;
+	let mouseleaveCount = 0;
+	const screen = blessed.screen();
+	try {
+		const style = css(`
+		  box {
+		    bg: blue;
+		    fg: red;
+		    bold: true;
+		  }
+		`);
+		const box = blessed.box({
+			parent: screen,
+			clickable: true
+		});
+		style(box);
+		box.on('mouseenter', () => mouseenterCount++);
+		box.on('mouseleave', () => mouseleaveCount++);
+		screen.render();
+
+		screen.emit('mousemove', { x: 0, y: 0 });
+		screen.emit('mousemove', { x: 10000, y: 10000 });
+		assert.equal(mouseenterCount, 1);
+		assert.equal(mouseleaveCount, 1);
+
+		// Detached nodes should not receive these events
+		box.detach();
+		screen.emit('mousemove', { x: 0, y: 0 });
+		screen.emit('mousemove', { x: 10000, y: 10000 });
+		assert.equal(mouseenterCount, 1);
+		assert.equal(mouseleaveCount, 1);
+	} finally {
+		screen.destroy();
+	}
+});
