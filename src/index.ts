@@ -156,6 +156,13 @@ function createStyle(css: string) {
 			baseStyles.set(prop, Object.getPrototypeOf(container.style[prop]));
 		}
 
+		// The `label` must be reset *after* setting `container.style.label` in
+		// the loop above in order for the styling to take effect correctly.
+		if (container.options.label) {
+			container.removeLabel();
+			container.setLabel(container.options.label);
+		}
+
 		// So in `blessed/lib/widgets/element.js` there's this bit of code:
 		//
 		// ```

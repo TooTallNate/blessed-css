@@ -16,7 +16,7 @@ interface PseudoStyles {
 const attrProps: string[] = ['name', 'id', 'draggable', 'scrollable', 'shadow'];
 
 const pseudoStyles: PseudoStyles = {
-	element: ['border'],
+	element: ['border', 'label'],
 	list: ['selected', 'item'],
 	listbar: ['selected', 'item', 'prefix'],
 	'progress-bar': ['bar'],

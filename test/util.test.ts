@@ -58,7 +58,7 @@ test('getPseudoStyles()', async () => {
 			parent: screen
 		});
 		pseudoStyles = getPseudoStyles(box);
-		assert.deepEqual(Array.from(pseudoStyles).sort(), ['border']);
+		assert.deepEqual(Array.from(pseudoStyles).sort(), ['border', 'label']);
 
 		const progressBar = blessed.progressbar({
 			parent: screen,
@@ -70,7 +70,7 @@ test('getPseudoStyles()', async () => {
 			mouse: true
 		});
 		pseudoStyles = getPseudoStyles(progressBar);
-		assert.deepEqual(Array.from(pseudoStyles).sort(), ['bar', 'border']);
+		assert.deepEqual(Array.from(pseudoStyles).sort(), ['bar', 'border', 'label']);
 
 		const list = blessed.list({
 			parent: screen
@@ -79,6 +79,7 @@ test('getPseudoStyles()', async () => {
 		assert.deepEqual(Array.from(pseudoStyles).sort(), [
 			'border',
 			'item',
+			'label',
 			'selected'
 		]);
 
@@ -89,7 +90,8 @@ test('getPseudoStyles()', async () => {
 		assert.deepEqual(Array.from(pseudoStyles).sort(), [
 			'border',
 			'cell',
-			'header'
+			'header',
+			'label'
 		]);
 	} finally {
 		screen.destroy();

@@ -138,6 +138,34 @@ test(':border styles', async () => {
 	}
 });
 
+test(':label styles', async () => {
+	const screen = blessed.screen();
+	try {
+		const box = blessed.box({
+			parent: screen
+		});
+		css(`
+		  box {
+		    bg: blue;
+		    fg: red;
+		  }
+
+		  :label {
+		    fg: black;
+		    bold: true;
+		  }
+		`)(box);
+		assert.equal(box.style.bg, 'blue');
+		assert.equal(box.style.fg, 'red');
+
+		assert.equal(box.style.label.bg, 'blue');
+		assert.equal(box.style.label.fg, 'black');
+		assert.equal(box.style.label.bold, true);
+	} finally {
+		screen.destroy();
+	}
+});
+
 test('[draggable] styles', async () => {
 	const screen = blessed.screen();
 	try {
