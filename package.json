@@ -31,7 +31,7 @@
     "url": "https://github.com/TooTallNate/blessed-css/issues"
   },
   "dependencies": {
-    "@types/blessed": "https://files-drl4s7gad.n8.io",
+    "@types/blessed": "^0.1.13",
     "css-select": "^2.1.0",
     "cssparser": "^0.9.4",
     "debug": "^4.1.1",
