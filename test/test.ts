@@ -39,7 +39,7 @@ test('Inline styles', async () => {
 		    bg: blue;
 		    fg: red;
 		    bold: true;
-			underline: false;
+		    underline: false;
 		  }
 		`)(box);
 		assert.equal(box.style.bg, 'blue');
