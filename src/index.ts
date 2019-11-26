@@ -66,9 +66,7 @@ function createStyle(css: string) {
 		initHover(screen);
 
 		// register `container` as "clickable" to make "hover" events work
-		// XXX: undocumented API :(
-		// @ts-ignore
-		screen._listenMouse(container);
+		screen.enableMouse(container);
 
 		const html = toHTML(container, selector, true);
 		debug('Generated HTML %o', html);
