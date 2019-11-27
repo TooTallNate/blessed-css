@@ -25,12 +25,6 @@ box:border {
 ```
 
 <br />
-<br />
-<br />
-<br />
-<br />
-<br />
-<br />
 
 ### What works?
 
