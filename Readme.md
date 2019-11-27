@@ -20,7 +20,7 @@ box:border {
 }
 ```
 
-What works:
+### What works?
 
 - Inheriting styles from parent components
 - Node names (`box`, `form`, `button`, etc.)
