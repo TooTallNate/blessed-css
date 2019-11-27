@@ -61,13 +61,7 @@ test('getPseudoStyles()', async () => {
 		assert.deepEqual(Array.from(pseudoStyles).sort(), ['border', 'label']);
 
 		const progressBar = blessed.progressbar({
-			parent: screen,
-			orientation: 'vertical',
-			pch: ' ',
-			filled: 0,
-			value: 0,
-			keys: true,
-			mouse: true
+			parent: screen
 		});
 		pseudoStyles = getPseudoStyles(progressBar);
 		assert.deepEqual(Array.from(pseudoStyles).sort(), ['bar', 'border', 'label']);

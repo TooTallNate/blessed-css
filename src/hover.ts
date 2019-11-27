@@ -1,10 +1,5 @@
 import blessed from 'blessed';
 
-// TODO: PR this change upstream
-interface ScreenWithClickable extends blessed.Widgets.Screen {
-	clickable: blessed.Widgets.BlessedElement[];
-}
-
 // http://2ality.com/2015/01/es6-set-operations.html#difference
 function difference<T>(a: Set<T>, b: Set<T>): T[] {
 	return [...a].filter(x => !b.has(x));
@@ -22,7 +17,7 @@ export function initHover(screen: blessed.Widgets.Screen) {
 }
 
 export function onMouseMove(
-	this: ScreenWithClickable,
+	this: blessed.Widgets.Screen,
 	data: blessed.Widgets.Events.IMouseEventArg
 ) {
 	const screen = this;
