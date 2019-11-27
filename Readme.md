@@ -1,6 +1,7 @@
-# blessed-css
-
-CSS engine for [`blessed`][blessed].
+blessed-css
+===========
+### CSS engine for [`blessed`][blessed]
+[![Build Status](https://github.com/TooTallNate/blessed-css/workflows/Node%20CI/badge.svg)](https://github.com/TooTallNate/blessed-css/actions?workflow=Node+CI)
 
 ```css
 #background {
