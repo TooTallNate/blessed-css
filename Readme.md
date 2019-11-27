@@ -3,6 +3,8 @@ blessed-css
 ### CSS engine for [`blessed`][blessed]
 [![Build Status](https://github.com/TooTallNate/blessed-css/workflows/Node%20CI/badge.svg)](https://github.com/TooTallNate/blessed-css/actions?workflow=Node+CI)
 
+<img align="right" width="600" src="https://user-images.githubusercontent.com/71256/34500365-483b1506-efbf-11e7-8c7c-fa9b130e707b.png">
+
 ```css
 #background {
   bg: blue;
@@ -17,8 +19,6 @@ box:border {
   fg: magenta;
 }
 ```
-
-<img align="right" width="600" src="https://user-images.githubusercontent.com/71256/34500365-483b1506-efbf-11e7-8c7c-fa9b130e707b.png">
 
 What works:
 
