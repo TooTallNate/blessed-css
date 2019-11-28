@@ -7,11 +7,11 @@ import { Parser as CssParser, Rule } from 'cssparser/lib/cssparser';
 import { calculate as calculateSpecificity } from 'specificity';
 
 import { initHover } from './hover';
-import { getPseudoStyles, parseBools, toHTML, Styles } from './util';
+import { getPseudoStyles, parseBools, toHTML } from './util';
 
 const debug = createDebug('blessed-css');
 
-function hasStyle(v: any): v is { style: Styles } {
+function hasStyle(v: any): v is { style: createStyle.Styles } {
 	return Boolean(v && v.style);
 }
 
@@ -45,7 +45,7 @@ function createStyle(css: string) {
 
 	const baseStylesMap = new WeakMap<
 		blessed.Widgets.BlessedElement,
-		Map<string, Styles>
+		Map<string, createStyle.Styles>
 	>();
 	const activeEffectsMap = new WeakMap<
 		blessed.Widgets.BlessedElement,
@@ -53,15 +53,15 @@ function createStyle(css: string) {
 	>();
 	const computedEffectsMap = new WeakMap<
 		blessed.Widgets.BlessedElement,
-		Map<string, Styles>
+		Map<string, createStyle.Styles>
 	>();
 
 	function get(
 		container: blessed.Widgets.BlessedElement,
 		selector = '',
-		parentStyle: Styles | null = null,
-		inlineStyle: Styles = {}
-	): Styles {
+		parentStyle: createStyle.Styles | null = null,
+		inlineStyle: createStyle.Styles = {}
+	): createStyle.Styles {
 		const { screen } = container;
 		initHover(screen);
 
@@ -96,7 +96,7 @@ function createStyle(css: string) {
 			})
 			.map(m => m.rule.declarations);
 
-		const computed: Styles = extend({}, ...sorted);
+		const computed: createStyle.Styles = extend({}, ...sorted);
 		parseBools(computed);
 
 		// When a selector is being calculated, compute the base styles
@@ -121,14 +121,14 @@ function createStyle(css: string) {
 		return inlineStyle;
 	}
 
-	function addStyle(container: blessed.Widgets.BlessedElement): Styles {
+	function addStyle(container: blessed.Widgets.BlessedElement): createStyle.Styles {
 		const parentStyle = hasStyle(container.parent)
 			? container.parent.style
 			: null;
 		const inlineStyle = container.options.style;
 		container.style = get(container, '', parentStyle, inlineStyle);
 
-		const baseStyles = new Map<string, Styles>();
+		const baseStyles = new Map<string, createStyle.Styles>();
 		baseStylesMap.set(container, baseStyles);
 
 		baseStyles.set('', Object.getPrototypeOf(container.style));
@@ -260,6 +260,12 @@ function createStyle(css: string) {
 	addStyle.get = get;
 
 	return addStyle;
+}
+
+namespace createStyle {
+	export type Styles = {
+		[name: string]: string | boolean | Styles;
+	};
 }
 
 export = createStyle;

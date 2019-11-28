@@ -1,8 +1,5 @@
 import blessed from 'blessed';
-
-export type Styles = {
-	[name: string]: string | boolean | Styles;
-};
+import { Styles } from './';
 
 export function isStyles(v: any): v is Styles {
 	return v && typeof v === 'object';
