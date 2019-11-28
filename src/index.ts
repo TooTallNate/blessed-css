@@ -121,7 +121,9 @@ function createStyle(css: string) {
 		return inlineStyle;
 	}
 
-	function addStyle(container: blessed.Widgets.BlessedElement): createStyle.Styles {
+	function addStyle(
+		container: blessed.Widgets.BlessedElement
+	): createStyle.Styles {
 		const parentStyle = hasStyle(container.parent)
 			? container.parent.style
 			: null;
