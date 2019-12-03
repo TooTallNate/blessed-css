@@ -1,6 +1,6 @@
 import assert from 'assert';
 import blessed from 'blessed';
-import css from '../src';
+import css, { Styles } from '../src';
 
 test('Node type styles', async () => {
 	const screen = blessed.screen();
@@ -8,13 +8,14 @@ test('Node type styles', async () => {
 		const box = blessed.box({
 			parent: screen
 		});
-		css(`
+		const s: Styles = css(`
 		  box {
 		    bg: blue;
 		    fg: red;
 		    bold: true;
 		  }
 		`)(box);
+		assert.strictEqual(s, box.style);
 		assert.equal(box.style.bg, 'blue');
 		assert.equal(box.style.fg, 'red');
 		assert.equal(box.style.bold, true);
